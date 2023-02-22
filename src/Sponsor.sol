@@ -14,7 +14,6 @@ contract Sponsor {
     error SponsorOperationFailed();
 
     ISignatureTransfer constant permit2 = ISignatureTransfer(0x000000000022D473030F116dDEE9F6B43aC78BA3);
-    address constant PREFETCHED_CONDITION = address(0);
 
     /// @notice execute the given user execution
     function execute(Execution calldata execution, Operation[] calldata sponsorOperations) external {
