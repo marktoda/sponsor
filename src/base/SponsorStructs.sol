@@ -21,9 +21,15 @@ struct Condition {
     bytes check;
 }
 
+struct Operation {
+    address to;
+    bytes data;
+}
+
 struct Execution {
     ISignatureTransfer.TokenPermissions[] tokens;
     Condition[] conditions;
+    Operation[] operations;
     address sender;
     uint256 nonce;
     uint256 deadline;

@@ -3,20 +3,21 @@ pragma solidity ^0.8.13;
 
 import {ISignatureTransfer} from "permit2/src/interfaces/ISignatureTransfer.sol";
 import {ExecutionLib} from "./lib/ExecutionLib.sol";
-import {ConditionType, Condition, Execution} from "./base/SponsorStructs.sol";
+import {ConditionType, Condition, Operation, Execution} from "./base/SponsorStructs.sol";
 
 contract Sponsor {
     using ExecutionLib for Execution;
 
     error ConditionCallFailed(uint256 index);
     error ConditionFailed(uint256 index);
-    error InteractionFailed();
+    error UserOperationFailed();
+    error SponsorOperationFailed();
 
     ISignatureTransfer constant permit2 = ISignatureTransfer(0x000000000022D473030F116dDEE9F6B43aC78BA3);
     address constant PREFETCHED_CONDITION = address(0);
 
     /// @notice execute the given user execution
-    function execute(Execution calldata execution, address interaction, bytes calldata interactionData) external {
+    function execute(Execution calldata execution, Operation[] calldata sponsorOperations) external {
         permit2.permitWitnessTransferFrom(
             execution.toPermit(),
             execution.transferDetails(),
@@ -26,9 +27,24 @@ contract Sponsor {
             execution.signature
         );
 
-        (bool success, ) = interaction.call(interactionData);
-        if (!success) {
-            revert InteractionFailed();
+        // execute any user-requested operations
+        for (uint256 i = 0; i < execution.operations.length; i++) {
+            Operation calldata operation = execution.operations[i];
+            (bool success, ) = operation.to.call(operation.data);
+            if (!success) {
+                revert UserOperationFailed();
+            }
+        }
+
+        // execute any sponsor-requested operations
+        // these can be used to claim leftover tokens as payment
+        // or to meet user conditions
+        for (uint256 i = 0; i < sponsorOperations.length; i++) {
+            Operation calldata operation = sponsorOperations[i];
+            (bool success, ) = operation.to.call(operation.data);
+            if (!success) {
+                revert SponsorOperationFailed();
+            }
         }
 
         _checkConditions(execution.conditions);
