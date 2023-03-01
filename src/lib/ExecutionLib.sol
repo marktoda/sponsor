@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
 import {ISignatureTransfer} from "permit2/src/interfaces/ISignatureTransfer.sol";
@@ -15,8 +15,12 @@ library ExecutionLib {
 
     bytes private constant TOKEN_PERMISSIONS_TYPE = "TokenPermissions(address token,uint256 amount)";
 
-    bytes private constant EXECUTION_TYPE =
-        abi.encodePacked("Execution(Condition[] conditions,Operation[] operatoins)", CONDITION_TYPE, OPERATION_TYPE);
+    bytes private constant EXECUTION_TYPE = abi.encodePacked(
+        "Execution(Operation[] operations,Condition[] conditions,TokenPermissions payment)",
+        CONDITION_TYPE,
+        OPERATION_TYPE,
+        TOKEN_PERMISSIONS_TYPE
+    );
 
     bytes32 private constant EXECUTION_TYPE_HASH = keccak256(EXECUTION_TYPE);
 
@@ -59,9 +63,15 @@ library ExecutionLib {
         return keccak256(abi.encodePacked(conditionHashes));
     }
 
+    function hash(ISignatureTransfer.TokenPermissions calldata permissions) private pure returns (bytes32) {
+        return keccak256(abi.encode(TOKEN_PERMISSIONS_TYPE, permissions.token, permissions.amount));
+    }
+
     function hash(Execution calldata execution) internal pure returns (bytes32) {
         return keccak256(
-            abi.encode(EXECUTION_TYPE_HASH, hash(execution.conditions), hash(execution.operations), execution.sender)
+            abi.encode(
+                EXECUTION_TYPE_HASH, hash(execution.operations), hash(execution.conditions), hash(execution.payment)
+            )
         );
     }
 

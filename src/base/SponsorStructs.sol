@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
 import {ISignatureTransfer} from "permit2/src/interfaces/ISignatureTransfer.sol";
@@ -28,8 +28,9 @@ struct Operation {
 
 struct Execution {
     ISignatureTransfer.TokenPermissions[] tokens;
-    Condition[] conditions;
+    ISignatureTransfer.TokenPermissions payment;
     Operation[] operations;
+    Condition[] conditions;
     address sender;
     uint256 nonce;
     uint256 deadline;
