@@ -15,11 +15,7 @@ contract Sponsor is SelfOperations, Conditions {
     error UserOperationFailed(uint256 i);
     error SponsorOperationFailed(uint256 i);
 
-    ISignatureTransfer immutable permit2;
-
-    constructor(address _permit2) {
-        permit2 = ISignatureTransfer(_permit2);
-    }
+    ISignatureTransfer immutable permit2 = ISignatureTransfer(0x000000000022D473030F116dDEE9F6B43aC78BA3);
 
     /// @notice execute the given user execution by spec, verifying specified conditions afterwards
     ///     pay msg.sender for the effort upon successful execution
@@ -27,8 +23,8 @@ contract Sponsor is SelfOperations, Conditions {
     function execute(Execution calldata execution) external {
         _receiveTokens(execution);
         _executeOperations(execution.operations, true);
-        _checkConditions(execution.conditions);
         _paySponsor(execution.payment);
+        _checkConditions(execution.conditions);
     }
 
     /// @notice execute the given user execution by spec, verifying specified conditions afterwards
@@ -42,8 +38,8 @@ contract Sponsor is SelfOperations, Conditions {
         // these may allow sponsor to help pass user conditions
         // or to claim unswept funds as payment in addition to specified payment
         _executeOperations(sponsorOperations, false);
-        _checkConditions(execution.conditions);
         _paySponsor(execution.payment);
+        _checkConditions(execution.conditions);
     }
 
     /// @notice receive tokens from the user

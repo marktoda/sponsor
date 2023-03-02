@@ -24,14 +24,13 @@ library ExecutionLib {
 
     bytes32 private constant EXECUTION_TYPE_HASH = keccak256(EXECUTION_TYPE);
 
-    string internal constant PERMIT2_EXECUTION_TYPE =
-        string(abi.encodePacked("Execution witness)", EXECUTION_TYPE, TOKEN_PERMISSIONS_TYPE));
+    string internal constant PERMIT2_EXECUTION_TYPE = string(abi.encodePacked("Execution witness)", EXECUTION_TYPE));
 
-    function hash(Operation calldata operation) private pure returns (bytes32) {
+    function hash(Operation memory operation) private pure returns (bytes32) {
         return keccak256(abi.encode(OPERATION_TYPE_HASH, operation.to, keccak256(operation.data)));
     }
 
-    function hash(Operation[] calldata operations) private pure returns (bytes32) {
+    function hash(Operation[] memory operations) private pure returns (bytes32) {
         bytes32[] memory operationHashes = new bytes32[](operations.length);
         unchecked {
             for (uint256 i = 0; i < operations.length; i++) {
@@ -41,7 +40,7 @@ library ExecutionLib {
         return keccak256(abi.encodePacked(operationHashes));
     }
 
-    function hash(Condition calldata condition) private pure returns (bytes32) {
+    function hash(Condition memory condition) private pure returns (bytes32) {
         return keccak256(
             abi.encode(
                 CONDITION_TYPE_HASH,
@@ -53,7 +52,7 @@ library ExecutionLib {
         );
     }
 
-    function hash(Condition[] calldata conditions) private pure returns (bytes32) {
+    function hash(Condition[] memory conditions) private pure returns (bytes32) {
         bytes32[] memory conditionHashes = new bytes32[](conditions.length);
         unchecked {
             for (uint256 i = 0; i < conditions.length; i++) {
@@ -63,11 +62,11 @@ library ExecutionLib {
         return keccak256(abi.encodePacked(conditionHashes));
     }
 
-    function hash(ISignatureTransfer.TokenPermissions calldata permissions) private pure returns (bytes32) {
+    function hash(ISignatureTransfer.TokenPermissions memory permissions) private pure returns (bytes32) {
         return keccak256(abi.encode(TOKEN_PERMISSIONS_TYPE, permissions.token, permissions.amount));
     }
 
-    function hash(Execution calldata execution) internal pure returns (bytes32) {
+    function hash(Execution memory execution) internal pure returns (bytes32) {
         return keccak256(
             abi.encode(
                 EXECUTION_TYPE_HASH, hash(execution.operations), hash(execution.conditions), hash(execution.payment)
@@ -75,7 +74,7 @@ library ExecutionLib {
         );
     }
 
-    function toPermit(Execution calldata execution)
+    function toPermit(Execution memory execution)
         internal
         pure
         returns (ISignatureTransfer.PermitBatchTransferFrom memory permit)
@@ -87,7 +86,7 @@ library ExecutionLib {
         });
     }
 
-    function transferDetails(Execution calldata execution)
+    function transferDetails(Execution memory execution)
         internal
         view
         returns (ISignatureTransfer.SignatureTransferDetails[] memory details)
