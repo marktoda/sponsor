@@ -14,6 +14,7 @@ contract Sponsor is SelfOperations, Conditions {
 
     error UserOperationFailed(uint256 i);
     error SponsorOperationFailed(uint256 i);
+    error ETHPaymentFailed();
 
     ISignatureTransfer immutable permit2 = ISignatureTransfer(0x000000000022D473030F116dDEE9F6B43aC78BA3);
 
@@ -34,11 +35,12 @@ contract Sponsor is SelfOperations, Conditions {
     function execute(Execution calldata execution, Operation[] calldata sponsorOperations) external {
         _receiveTokens(execution);
         _executeOperations(execution.operations, true);
+
+        _paySponsor(execution.payment);
         // execute any sponsor-requested operations
         // these may allow sponsor to help pass user conditions
         // or to claim unswept funds as payment in addition to specified payment
         _executeOperations(sponsorOperations, false);
-        _paySponsor(execution.payment);
         _checkConditions(execution.conditions);
     }
 
@@ -76,7 +78,13 @@ contract Sponsor is SelfOperations, Conditions {
         // or allow sponsors to claim unswept funds directly as payment
         if (payment.amount == 0) return;
 
-        ERC20(payment.token).transfer(msg.sender, payment.amount);
+        // pay the sponsor
+        if (payment.token == address(0)) {
+            (bool success,) = msg.sender.call{value: payment.amount}("");
+            if (!success) revert ETHPaymentFailed();
+        } else {
+            ERC20(payment.token).transfer(msg.sender, payment.amount);
+        }
     }
 
     receive() external payable {}
