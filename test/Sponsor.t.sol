@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
 import {ISignatureTransfer} from "permit2/src/interfaces/ISignatureTransfer.sol";
@@ -41,7 +41,7 @@ contract SponsorTest is Test, DeployPermit2, PermitSignatures {
         mockSwap = new MockSwap();
         tokenA.mint(address(mockSwap), 1 ether);
         tokenB.mint(address(mockSwap), 1 ether);
-        (bool success,) = address(mockSwap).call{ value: 1 ether }("");
+        (bool success,) = address(mockSwap).call{value: 1 ether}("");
         require(success, "MockSwap: ETH transfer failed");
     }
 
@@ -72,7 +72,6 @@ contract SponsorTest is Test, DeployPermit2, PermitSignatures {
 
         operations[1] =
             Operation({to: address(tokenB), data: abi.encodeWithSelector(ERC20.transfer.selector, recipient, 1 ether)});
-
 
         unsigned.tokens = tokens;
         unsigned.operations = operations;
@@ -238,8 +237,7 @@ contract SponsorTest is Test, DeployPermit2, PermitSignatures {
             data: abi.encodeWithSelector(SelfOperations.sweep.selector, address(tokenA), recipient)
         });
 
-        unsigned.payment =
-            ISignatureTransfer.TokenPermissions({token: address(tokenB), amount: 1 ether});
+        unsigned.payment = ISignatureTransfer.TokenPermissions({token: address(tokenB), amount: 1 ether});
 
         Execution memory execution = signExecution(unsigned, senderPk, address(sponsor));
 
@@ -273,8 +271,7 @@ contract SponsorTest is Test, DeployPermit2, PermitSignatures {
             data: abi.encodeWithSelector(ERC20.transfer.selector, address(recipient), 0.9 ether)
         });
 
-        unsigned.payment =
-            ISignatureTransfer.TokenPermissions({token: address(tokenB), amount: 0.1 ether});
+        unsigned.payment = ISignatureTransfer.TokenPermissions({token: address(tokenB), amount: 0.1 ether});
 
         Execution memory execution = signExecution(unsigned, senderPk, address(sponsor));
 
@@ -308,8 +305,7 @@ contract SponsorTest is Test, DeployPermit2, PermitSignatures {
             data: abi.encodeWithSelector(SelfOperations.sweepETH.selector, address(recipient))
         });
 
-        unsigned.payment =
-            ISignatureTransfer.TokenPermissions({token: address(tokenB), amount: 0 ether});
+        unsigned.payment = ISignatureTransfer.TokenPermissions({token: address(tokenB), amount: 0 ether});
 
         Execution memory execution = signExecution(unsigned, senderPk, address(sponsor));
 
