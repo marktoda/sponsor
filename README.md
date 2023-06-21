@@ -10,7 +10,6 @@ Users specify their sponsored execution using the following parameters:
 ```solidity
 struct Execution {
     ISignatureTransfer.TokenPermissions[] tokens;
-    ISignatureTransfer.TokenPermissions payment;
     Operation[] operations;
     Condition[] conditions;
     address sender;
@@ -25,20 +24,16 @@ struct Execution {
 
 The ERC20 tokens and amounts that will be used for the execution. These are transferred from the user using permit2 into the sponsor contract to be used for any _operations_.
 
-**payment**
-
-The ERC20 token and amount that the user is willing to pay the sponsor operator in return for execution. This should generally cover gas costs and a tip for the service. Payment can also be made in ETH using address(0) as token, though the ETH must be acquired through operations.
-
-Any payment is transferred directly from the sponsor contract, so the payment assets must be included in `token`, or acquired through `operations`.
-
 **operations**
 
 The operations that will be executed. These are made as external calls to the specified address with the specified data. I.e. user can specify simple transfers of tokens, swaps on AMMS, deposits into lending markets etc.
 
 There are some built-in operations to simplify common flows:
-- sweep: sweep the full balance of a given token to the given recipient
-- sweepETH: sweep the full balance of ETH to the given recipient
-
+- sweep: sweep the full balance of a given currency to the given recipient
+- tip: pay some amount of a given currency to the operator who submitted the execution
+- tipEscalating: pay some amount defined by a fee escalator of a given currency to the operator who submitted the execution
+    - Escalator is defined by start/end timestamps and amounts. The amount increases linearly from startAmount to endAmount over startTime to endTime.
+    - This may be used to create an auction for relaying executions
 
 **conditions**
 
@@ -71,5 +66,12 @@ The timestamp deadline for the signature validity
 
 The sender signature in joined signature format, or EIP-1271 signature data
 
+
+## Permit2 Setup
+In order to submit executions through Sponsor, users must have first approved Permit2 for any tokens they wish to use.
+
+Sponsor includes a "Permit2 setup" set of utility functions in base/Permit2Setup.sol which can be used to streamline this process. If the ERC20 token that is being onboarded supports native permit, these functions can be called in the same transaction as the execution itself to have a fully gasless onboarding experience.
+
+Operators can use the built-in multicall function to batch the Permit2Setup call(s) with execution itself.
 
 **THIS IS EXPERIMENTAL, UNAUDITED CODE -- DO NOT USE IN PRODUCTION**
