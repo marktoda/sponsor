@@ -11,7 +11,6 @@ import {ExecutionLib} from "../../src/lib/ExecutionLib.sol";
 
 struct UnsignedExecution {
     ISignatureTransfer.TokenPermissions[] tokens;
-    ISignatureTransfer.TokenPermissions payment;
     Operation[] operations;
     Condition[] conditions;
     address sender;
@@ -51,7 +50,6 @@ contract PermitSignatures is Test {
 
         result = Execution({
             tokens: execution.tokens,
-            payment: execution.payment,
             operations: execution.operations,
             conditions: execution.conditions,
             sender: execution.sender,

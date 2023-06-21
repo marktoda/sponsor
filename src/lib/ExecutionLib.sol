@@ -13,14 +13,8 @@ library ExecutionLib {
 
     bytes32 private constant CONDITION_TYPE_HASH = keccak256(CONDITION_TYPE);
 
-    bytes private constant TOKEN_PERMISSIONS_TYPE = "TokenPermissions(address token,uint256 amount)";
-
-    bytes private constant EXECUTION_TYPE = abi.encodePacked(
-        "Execution(Operation[] operations,Condition[] conditions,TokenPermissions payment)",
-        CONDITION_TYPE,
-        OPERATION_TYPE,
-        TOKEN_PERMISSIONS_TYPE
-    );
+    bytes private constant EXECUTION_TYPE =
+        abi.encodePacked("Execution(Operation[] operations,Condition[] conditions)", CONDITION_TYPE, OPERATION_TYPE);
 
     bytes32 private constant EXECUTION_TYPE_HASH = keccak256(EXECUTION_TYPE);
 
@@ -62,16 +56,8 @@ library ExecutionLib {
         return keccak256(abi.encodePacked(conditionHashes));
     }
 
-    function hash(ISignatureTransfer.TokenPermissions memory permissions) private pure returns (bytes32) {
-        return keccak256(abi.encode(TOKEN_PERMISSIONS_TYPE, permissions.token, permissions.amount));
-    }
-
     function hash(Execution memory execution) internal pure returns (bytes32) {
-        return keccak256(
-            abi.encode(
-                EXECUTION_TYPE_HASH, hash(execution.operations), hash(execution.conditions), hash(execution.payment)
-            )
-        );
+        return keccak256(abi.encode(EXECUTION_TYPE_HASH, hash(execution.operations), hash(execution.conditions)));
     }
 
     function toPermit(Execution memory execution)

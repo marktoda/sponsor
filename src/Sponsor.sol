@@ -24,7 +24,6 @@ contract Sponsor is SelfOperations, Conditions, Multicall, Permit2Setup {
     function execute(Execution calldata execution) external {
         _receiveTokens(execution);
         _executeOperations(execution.operations, true);
-        _paySponsor(execution.payment);
         _checkConditions(execution.conditions);
     }
 
@@ -36,7 +35,6 @@ contract Sponsor is SelfOperations, Conditions, Multicall, Permit2Setup {
         _receiveTokens(execution);
         _executeOperations(execution.operations, true);
 
-        _paySponsor(execution.payment);
         // execute any sponsor-requested operations
         // these may allow sponsor to help pass user conditions
         // or to claim unswept funds as payment in addition to specified payment
@@ -64,26 +62,19 @@ contract Sponsor is SelfOperations, Conditions, Multicall, Permit2Setup {
     function _executeOperations(Operation[] calldata operations, bool userOperations) internal {
         for (uint256 i = 0; i < operations.length; i++) {
             Operation calldata operation = operations[i];
-            (bool success,) = operation.to.call(operation.data);
+
+            bool success;
+            // if self-operation, self-delegatecall to preserve call context
+            if (operation.to == address(this)) {
+                (success,) = address(this).delegatecall(operation.data);
+            } else {
+                (success,) = operation.to.call(operation.data);
+            }
+
             if (!success) {
                 if (userOperations) revert UserOperationFailed(i);
                 else revert SponsorOperationFailed(i);
             }
-        }
-    }
-
-    /// @notice pay the sponsor for execution
-    function _paySponsor(ISignatureTransfer.TokenPermissions calldata payment) internal {
-        // users may sponsor their own transaction
-        // or allow sponsors to claim unswept funds directly as payment
-        if (payment.amount == 0) return;
-
-        // pay the sponsor
-        if (payment.token == address(0)) {
-            (bool success,) = msg.sender.call{value: payment.amount}("");
-            if (!success) revert ETHPaymentFailed();
-        } else {
-            ERC20(payment.token).transfer(msg.sender, payment.amount);
         }
     }
 

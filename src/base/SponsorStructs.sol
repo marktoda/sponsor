@@ -28,7 +28,6 @@ struct Operation {
 
 struct Execution {
     ISignatureTransfer.TokenPermissions[] tokens;
-    ISignatureTransfer.TokenPermissions payment;
     Operation[] operations;
     Condition[] conditions;
     address sender;

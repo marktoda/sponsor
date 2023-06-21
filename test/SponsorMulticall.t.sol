@@ -18,7 +18,7 @@ contract SponsorMulticallTest is Test, DeployPermit2, PermitSignatures {
 
     bytes4 constant EXECUTE_SELECTOR = bytes4(
         keccak256(
-            "execute(((address,uint256)[],(address,uint256),(address,bytes)[],(uint8,address,bytes,bytes)[],address,uint256,uint256,bytes))"
+            "execute(((address,uint256)[],(address,bytes)[],(uint8,address,bytes,bytes)[],address,uint256,uint256,bytes))"
         )
     );
     bytes32 constant PERMIT_TYPEHASH =
@@ -142,22 +142,23 @@ contract SponsorMulticallTest is Test, DeployPermit2, PermitSignatures {
         ISignatureTransfer.TokenPermissions[] memory tokens = new ISignatureTransfer.TokenPermissions[](1);
         tokens[0] = ISignatureTransfer.TokenPermissions({token: address(tokenA), amount: 1 ether});
 
-        // pay operator 0.1 tokenB for their effort and gas
-        ISignatureTransfer.TokenPermissions memory payment =
-            ISignatureTransfer.TokenPermissions({token: address(tokenA), amount: 0.1 ether});
-
-        Operation[] memory operations = new Operation[](1);
+        Operation[] memory operations = new Operation[](2);
         // transfer 0.9 ether to recipient
         operations[0] = Operation({
             to: address(tokenA),
             data: abi.encodeWithSelector(ERC20.transfer.selector, recipient, 0.9 ether)
         });
 
+        // transfer 0.1 ether to the operator
+        operations[1] = Operation({
+            to: address(sponsor),
+            data: abi.encodeWithSelector(SelfOperations.tip.selector, address(tokenA), 0.1 ether)
+        });
+
         Condition[] memory conditions = new Condition[](0);
 
         unsigned = UnsignedExecution({
             tokens: tokens,
-            payment: payment,
             operations: operations,
             conditions: conditions,
             sender: sender,
