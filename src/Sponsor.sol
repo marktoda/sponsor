@@ -6,17 +6,17 @@ import {ISignatureTransfer} from "permit2/src/interfaces/ISignatureTransfer.sol"
 import {ExecutionLib} from "./lib/ExecutionLib.sol";
 import {SelfOperations} from "./base/SelfOperations.sol";
 import {Conditions} from "./base/Conditions.sol";
+import {Multicall} from "./base/Multicall.sol";
+import {Permit2Setup} from "./base/Permit2Setup.sol";
 import {ConditionType, Condition, Operation, Execution} from "./base/SponsorStructs.sol";
 
 /// @notice a contract that executes signed user token-oriented operations on their behalf
-contract Sponsor is SelfOperations, Conditions {
+contract Sponsor is SelfOperations, Conditions, Multicall, Permit2Setup {
     using ExecutionLib for Execution;
 
     error UserOperationFailed(uint256 i);
     error SponsorOperationFailed(uint256 i);
     error ETHPaymentFailed();
-
-    ISignatureTransfer immutable permit2 = ISignatureTransfer(0x000000000022D473030F116dDEE9F6B43aC78BA3);
 
     /// @notice execute the given user execution by spec, verifying specified conditions afterwards
     ///     pay msg.sender for the effort upon successful execution

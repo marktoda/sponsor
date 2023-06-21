@@ -1,6 +1,11 @@
 name: test
 
-on: workflow_dispatch
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
 
 env:
   FOUNDRY_PROFILE: ci
@@ -27,6 +32,11 @@ jobs:
           forge --version
           forge build --sizes
         id: build
+
+      - name: Check Lint
+        run: |
+          forge fmt --check
+        id: lint
 
       - name: Run Forge tests
         run: |
